@@ -143,7 +143,7 @@ var ScrollingBG = cc.Sprite.extend({
 var Ship = cc.Sprite.extend({
   ctor: function() {
     this._super();
-    this.initWithFile(res.ship_png);
+    this.initWithFile(res.shrimp01_png);
     this.ySpeed = 0; //宇宙船の垂直速度
     //宇宙船を操作するで追加した部分
     this.engineOn = false; //カスタム属性追加　宇宙船のエンジンのON OFF
@@ -184,7 +184,7 @@ var Ship = cc.Sprite.extend({
 var Asteroid = cc.Sprite.extend({
   ctor: function() {
     this._super();
-    this.initWithFile(res.asteroid_png);
+    this.initWithFile(res.wave_png);
   },
   onEnter: function() {
     this._super();
