@@ -21,6 +21,7 @@ var res = {
     bgm_main : "res/bgm_main.mp3",
     bgm_title : "res/bgm_title.mp3",
     se_bang : "res/se_bang.mp3"
+
 };
 
 var g_resources = [];
