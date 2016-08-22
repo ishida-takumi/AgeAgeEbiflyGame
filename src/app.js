@@ -1,20 +1,24 @@
 //app.js
 
 var size;
-
 var mylabel;
 //背景スクロールで追加した部分
 var gameLayer;
 var background;
-var scrollSpeed = 1;
+var rock_above;
+var rock_under;
+var scrollSpeed1 = 1;
+var scrollSpeed2 = 2;
+var scrollSpeed3 = 3;
 //宇宙船で追加した部分　重力
-var ship;
+var Ebi;
+var zanki = 3;
 var gameGravity = -0.05;
 //宇宙船を操作するで追加した部分 エンジンの推進力
 var gameThrust = 0.1;
 //パーティクル
 var emitter;
-var　 audioEngine;
+var audioEngine;
 
 var gameScene = cc.Scene.extend({
 
@@ -46,24 +50,29 @@ var game = cc.Layer.extend({
     cc.eventManager.addListener({
       event: cc.EventListener.MOUSE,
       onMouseDown: function(event) {
-        ship.engineOn = true;
+        Ebi.engineOn = true;
       },
       onMouseUp: function(event) {
-        ship.engineOn = false;
+        Ebi.engineOn = false;
       }
     }, this)
 
     //スクロールする背景スプライトをインスタンス　スクロール速度:scrollSpeed
     background = new ScrollingBG();
+    rock_above = new ScrollingRA();
+    rock_under = new ScrollingRU();
     this.addChild(background);
+    this.addChild(rock_above);
+    this.addChild(rock_under);
 
-    ship = new Ship();
-    this.addChild(ship);
+    Ebi = new Ebi();
+    this.addChild(Ebi);
 
     //scheduleUpdate関数は、描画の都度、update関数を呼び出す
     this.scheduleUpdate();
     //小惑星の生成で追加
-    this.schedule(this.addAsteroid, 0.5);
+    this.schedule(this.addAsteroid, 5);
+    this.schedule(this.addAsteroid2, 2);
     //ここからパーティクルの設定
     emitter = cc.ParticleSun.create();
     this.addChild(emitter, 1);
@@ -76,7 +85,9 @@ var game = cc.Layer.extend({
   update: function(dt) {
     //backgroundのscrollメソッドを呼び出す
     background.scroll();
-    ship.updateY();
+    rock_above.scroll();
+    rock_under.scroll();
+    Ebi.updateY();
   },
   //小惑星の生成で追加
   addAsteroid: function(event) {
@@ -85,6 +96,13 @@ var game = cc.Layer.extend({
   },
   removeAsteroid: function(asteroid) {
     this.removeChild(asteroid);
+  },
+  addAsteroid2: function(event) {
+    var asteroid2 = new Asteroid2();
+    this.addChild(asteroid2);
+  },
+  removeAsteroid2: function(asteroid2) {
+    this.removeChild(asteroid2);
   },
   //BGMと効果音の関数を追加
   /*
@@ -131,16 +149,57 @@ var ScrollingBG = cc.Sprite.extend({
   },
   scroll: function() {
     //座標を更新する
-    this.setPosition(this.getPosition().x - scrollSpeed, this.getPosition().y);
+    this.setPosition(this.getPosition().x - scrollSpeed1, this.getPosition().y);
     //画面の端に到達したら反対側の座標にする
     if (this.getPosition().x < 0) {
       this.setPosition(this.getPosition().x + 480, this.getPosition().y);
     }
   }
 });
-
+var ScrollingRA = cc.Sprite.extend({
+  //ctorはコンストラクタ　クラスがインスタンスされたときに必ず実行される
+  ctor: function() {
+    this._super();
+    this.initWithFile(res.rock_above_png);
+  },
+  //onEnterメソッドはスプライト描画の際に必ず呼ばれる
+  onEnter: function() {
+    //背景画像の描画開始位置 横960の画像の中心が、画面の端に設置される
+    this.setPosition(size.width, size.height / 1);
+    //  this.setPosition(480,160);
+  },
+  scroll: function() {
+    //座標を更新する
+    this.setPosition(this.getPosition().x - scrollSpeed2, this.getPosition().y);
+    //画面の端に到達したら反対側の座標にする
+    if (this.getPosition().x < 0) {
+      this.setPosition(this.getPosition().x + 480, this.getPosition().y);
+    }
+  }
+});
+var ScrollingRU = cc.Sprite.extend({
+  //ctorはコンストラクタ　クラスがインスタンスされたときに必ず実行される
+  ctor: function() {
+    this._super();
+    this.initWithFile(res.rock_under_png);
+  },
+  //onEnterメソッドはスプライト描画の際に必ず呼ばれる
+  onEnter: function() {
+    //背景画像の描画開始位置 横960の画像の中心が、画面の端に設置される
+    this.setPosition(size.width, size.height / 4);
+    //  this.setPosition(480,160);
+  },
+  scroll: function() {
+    //座標を更新する
+    this.setPosition(this.getPosition().x - scrollSpeed3, this.getPosition().y);
+    //画面の端に到達したら反対側の座標にする
+    if (this.getPosition().x < 0) {
+      this.setPosition(this.getPosition().x + 480, this.getPosition().y);
+    }
+  }
+});
 //重力（仮）で落下する　宇宙船　
-var Ship = cc.Sprite.extend({
+var Ebi = cc.Sprite.extend({
   ctor: function() {
     this._super();
     this.initWithFile(res.shrimp01_png);
@@ -180,25 +239,25 @@ var Ship = cc.Sprite.extend({
     }
   }
 });
-//小惑星クラス
+//サンゴ上クラス
 var Asteroid = cc.Sprite.extend({
   ctor: function() {
     this._super();
-    this.initWithFile(res.wave_png);
+    this.initWithFile(res.coral_above_png);
   },
   onEnter: function() {
     this._super();
-    this.setPosition(600, Math.random() * 320);
-    var moveAction = cc.MoveTo.create(2.5, new cc.Point(-100, Math.random() * 320));
+    this.setPosition(600,  500);
+    var moveAction = cc.MoveTo.create(5, new cc.Point(-100, Math.random() *100+400));
     this.runAction(moveAction);
     this.scheduleUpdate();
   },
   update: function(dt) {
-    //小惑星との衝突を判定する処理
-    var shipBoundingBox = ship.getBoundingBox();
+    //サンゴとの衝突を判定する処理
+    var EbiBoundingBox = Ebi.getBoundingBox();
     var asteroidBoundingBox = this.getBoundingBox();
     //rectIntersectsRectは２つの矩形が交わっているかチェックする
-    if (cc.rectIntersectsRect(shipBoundingBox, asteroidBoundingBox) && ship.invulnerability == 0) {
+    if (cc.rectIntersectsRect(EbiBoundingBox, asteroidBoundingBox) && Ebi.invulnerability == 0) {
       gameLayer.removeAsteroid(this); //小惑星を削除する
       //ボリュームを上げる
       audioEngine.setEffectsVolume(audioEngine.getEffectsVolume() + 0.3);
@@ -211,17 +270,59 @@ var Asteroid = cc.Sprite.extend({
       }
       restartGame();
     }
-    //画面の外にでた小惑星を消去する処理
+    //画面の外にでたサンゴを消去する処理
     if (this.getPosition().x < -50) {
       gameLayer.removeAsteroid(this)
     }
   }
 });
+//サンゴ下クラス
+var Asteroid2 = cc.Sprite.extend({
+  ctor: function() {
+    this._super();
+    this.initWithFile(res.coral_under_png);
+  },
+  onEnter: function() {
+    this._super();
+    this.setPosition(600,  -100);
+    var moveAction = cc.MoveTo.create(5, new cc.Point(-100, Math.random() * 100-200));
+    this.runAction(moveAction);
+    this.scheduleUpdate();
+  },
+  update: function(dt) {
+    //サンゴとの衝突を判定する処理
+    var EbiBoundingBox = Ebi.getBoundingBox();
+    var asteroid2BoundingBox = this.getBoundingBox();
+    //rectIntersectsRectは２つの矩形が交わっているかチェックする
+    if (cc.rectIntersectsRect(EbiBoundingBox, asteroid2BoundingBox) && Ebi.invulnerability == 0) {
+      gameLayer.removeAsteroid2(this); //小惑星を削除する
+      //ボリュームを上げる
+      audioEngine.setEffectsVolume(audioEngine.getEffectsVolume() + 0.3);
+      //効果音を再生する
+    //  audioEngine.playEffect("res/se_bang.mp3");
+      audioEngine.playEffect(res.se_bang);
+      //bgmの再生をとめる
+      if (audioEngine.isMusicPlaying()) {
+        audioEngine.stopMusic();
+      }
+      restartGame();
+    }
+    //画面の外にでたサンゴを消去する処理
+    if (this.getPosition().x < -50) {
+      gameLayer.removeAsteroid2(this)
+    }
+  }
+});
 //宇宙船を元の位置に戻して、宇宙船の変数を初期化する
 function restartGame() {
-  ship.ySpeed = 0;
-  ship.setPosition(ship.getPosition().x, 160);
-  ship.invulnerability = 100;
+  Ebi.ySpeed = 0;
+  Ebi.setPosition(Ebi.getPosition().x, 160);
+  Ebi.invulnerability = 100;
+  zanki = zanki - 1;
+  if(zanki == 0){
+    zanki=3;
+    cc.director.runScene(new OverScene());
+  }
   //bgmリスタート
   if (!audioEngine.isMusicPlaying()) {
     audioEngine.resumeMusic();
