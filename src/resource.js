@@ -20,7 +20,14 @@ var res = {
     se_surprise : "res/se_surprise.mp3",
     bgm_main : "res/bgm_main.mp3",
     bgm_title : "res/bgm_title.mp3",
-    se_bang : "res/se_bang.mp3"
+    se_bang : "res/se_bang.mp3",
+    item01_png : "res/nagoya0.png",
+    item02_png : "res/nagoya1.png",
+    item03_png : "res/nagoya2.png",
+    item04_png : "res/nagoya3.png",
+    item05_png : "res/nagoya4.png",
+    item06_png : "res/nagoya5.png",
+    item07_png : "res/nagoya6.png",
 
 };
 

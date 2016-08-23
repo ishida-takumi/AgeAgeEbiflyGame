@@ -21,7 +21,8 @@ var EM = 0;
 //パーティクル
 var emitter;
 var audioEngine;
-var uppoint
+var uppoint;
+var rnd;
 
 var gameScene = cc.Scene.extend({
 
@@ -89,6 +90,7 @@ var game = cc.Layer.extend({
     //小惑星の生成で追加
     this.schedule(this.addAsteroid, 5);
     this.schedule(this.addAsteroid2, 2);
+    this.schedule(this.additem,6.0);
     //ここからパーティクルの設定
     emitter = cc.ParticleSun.create();
     this.addChild(emitter, 1);
@@ -114,6 +116,10 @@ var game = cc.Layer.extend({
   },
   addAsteroid2: function(event){
     var asteroid = new Asteroid2();
+    this.addChild(asteroid);
+  },
+  additem:function(event){
+    var asteroid = new item();
     this.addChild(asteroid);
   },
   removeAsteroid: function(asteroid) {
@@ -274,10 +280,10 @@ var Ebi = cc.Sprite.extend({
       this.ySpeed += gameThrust;
       this.initWithFile(res.shrimp02_png);
       EM += 1;
-      if(EM ==3){
+      if(EM ==6){
         this.initWithFile(res.shrimp03_png);
       }
-      if(EM ==6){
+      if(EM ==12){
         this.initWithFile(res.shrimp01_png);
         EM = 0;
       }
@@ -374,6 +380,93 @@ var Asteroid2 = cc.Sprite.extend({
       restartGame();
     }
     //画面の外にでたサンゴを消去する処理
+    if (this.getPosition().x < -50) {
+      gameLayer.removeAsteroid(this)
+    }
+  }
+});
+//アイテム
+var item = cc.Sprite.extend({
+  sprite: null,
+  // アイテムを保持しておく配列
+  itemSpriteArray: null,
+  // 配列の宣言　アイテムの名前を指定
+  itemArray: [res.item01_png, res.item02_png, res.item03_png, res.item04_png, res.item05_png, res.item06_png, res.item07_png],
+  ctor: function() {
+    this._super();
+    this.itemSpriteArray = new Array();
+    rnd = Math.floor(Math.random() * 7);
+    //配列で画像管理　おーぶ出現のコード参照
+    //***itemの数字をランダムにすれば配列組む必要なくね？***
+    this.initWithFile(this.itemArray[rnd]);
+
+  },
+  onEnter: function() {
+    this._super();
+    this.setPosition(600, Math.random()  * 320);
+    var moveAction = cc.MoveTo.create(5, new cc.Point(-100, Math.random() * 320));
+    //↑これを変えてアイテムの出方を調整
+    this.runAction(moveAction);
+    this.scheduleUpdate();
+  },
+  update: function(dt) {
+    //小惑星との衝突を判定する処理
+    var ebiBoundingBox = ebi.getBoundingBox();
+    var asteroidBoundingBox = this.getBoundingBox();
+    //rectIntersectsRectは２つの矩形が交わっているかチェックする
+    if (cc.rectIntersectsRect(ebiBoundingBox, asteroidBoundingBox) && ebi.invulnerability == 0) {
+      gameLayer.removeAsteroid(this); //小惑星を削除する
+      //ボリュームを上げる
+      audioEngine.setEffectsVolume(audioEngine.getEffectsVolume() + 0.3);
+      //効果音を再生する
+      //audioEngine.playEffect("res/se_bang.mp3");
+      audioEngine.playEffect(res.se_bang);
+      //bgmの再生をとめる
+      /*if (audioEngine.isMusicPlaying()) {
+        audioEngine.stopMusic();
+      }
+      restartGame();*/
+
+      //スコアを追加する
+      if(rnd < 3)
+        score += 10;
+      else if (rnd < 5)
+        score += 30;
+      else
+        score += 50;
+      scoreText.setString("スコア:"+score);
+
+      //↓↓↓スコアを追加する(取ったものでポイント変更とかえびふりゃーちゃんの移動変更とかやるとしてる名残)
+      //if(gameLayer.removeAsteroid(this) == res.item01_png ){
+        /*if(uppoint == 1){
+          score += 10 * 2;
+          uppoint = 0;
+        }*/
+        //score += 10;
+          /*if(rnd < 3){
+            score += 10;
+          }
+          if(rnd < 2){
+            score += 10;
+          }*/
+        //scoreText.setString("スコア:"+score);
+      }
+      /*
+      //しゃちほこに、えびふりゃーのクリックパワーアップを追加
+      if(rnd == 4　&& gameThrust < 0.5){
+        gameThrust += 0.5;
+      }
+      //タワーに、えびふりゃーのクリックパワーダウンを追加
+      if(rnd == 5　&& gameThrust > -0.5){
+        gameThrust -= 0.5;
+      }
+      //城に、ポイントアップを付与
+      if(rnd == 6 ){
+        uppoint = 1;
+      }
+    }
+    //↑↑↑スコアを追加する(取ったものでポイント変更とかえびふりゃーちゃんの移動変更とかやるとしてる名残)*/
+    //画面の外にでた小惑星を消去する処理
     if (this.getPosition().x < -50) {
       gameLayer.removeAsteroid(this)
     }
