@@ -44,7 +44,7 @@ var TitleLayer = cc.Layer.extend({
 var TitleScene = cc.Scene.extend({
     onEnter: function() {
         this._super();
-        var layer = new TitleLayer();
-        this.addChild(layer);
+        var titlelayer = new TitleLayer();
+        this.addChild(titlelayer);
     }
 });

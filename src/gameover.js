@@ -44,7 +44,7 @@ var OverLayer = cc.Layer.extend({
 var OverScene = cc.Scene.extend({
     onEnter: function() {
         this._super();
-        var layer = new OverLayer();
-        this.addChild(layer);
+        var overlayer = new OverLayer();
+        this.addChild(overlayer);
     }
 });

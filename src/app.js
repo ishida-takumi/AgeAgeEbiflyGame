@@ -7,18 +7,21 @@ var gameLayer;
 var background;
 var rock_above;
 var rock_under;
-var scrollSpeed1 = 1;
-var scrollSpeed2 = 2;
-var scrollSpeed3 = 3;
+var ceiling;
+var land;
+var scrollSpeed = 1;
 //宇宙船で追加した部分　重力
-var Ebi;
+var ebi;
 var zanki = 3;
 var gameGravity = -0.05;
+var score = 0;
 //宇宙船を操作するで追加した部分 エンジンの推進力
 var gameThrust = 0.1;
+var EM = 0;
 //パーティクル
 var emitter;
 var audioEngine;
+var uppoint
 
 var gameScene = cc.Scene.extend({
 
@@ -50,10 +53,10 @@ var game = cc.Layer.extend({
     cc.eventManager.addListener({
       event: cc.EventListener.MOUSE,
       onMouseDown: function(event) {
-        Ebi.engineOn = true;
+        ebi.engineOn = true;
       },
       onMouseUp: function(event) {
-        Ebi.engineOn = false;
+        ebi.engineOn = false;
       }
     }, this)
 
@@ -61,12 +64,25 @@ var game = cc.Layer.extend({
     background = new ScrollingBG();
     rock_above = new ScrollingRA();
     rock_under = new ScrollingRU();
+    ceiling = new ScrollingCA();
+    land = new ScrollingLU();
     this.addChild(background);
     this.addChild(rock_above);
     this.addChild(rock_under);
+    this.addChild(ceiling);
+    this.addChild(land);
 
-    Ebi = new Ebi();
-    this.addChild(Ebi);
+    ebi = new Ebi();
+    this.addChild(ebi);
+
+    //残機数
+    zankiText = cc.LabelTTF.create("残機:"+zanki,"Arial","30",cc.TEXT_ALIGNMENT_CENTER);
+    this.addChild(zankiText);
+    zankiText.setPosition(50,300);
+    //残機数初期値
+    scoreText = cc.LabelTTF.create("スコア:" +score ,"Arial","30",cc.TEXT_ALIGNMENT_CENTER);
+    this.addChild(scoreText);
+    scoreText.setPosition(200,300);
 
     //scheduleUpdate関数は、描画の都度、update関数を呼び出す
     this.scheduleUpdate();
@@ -87,25 +103,25 @@ var game = cc.Layer.extend({
     background.scroll();
     rock_above.scroll();
     rock_under.scroll();
-    Ebi.updateY();
+    ceiling.scroll();
+    land.scroll();
+    ebi.updateY();
   },
   //小惑星の生成で追加
   addAsteroid: function(event) {
     var asteroid = new Asteroid();
     this.addChild(asteroid);
   },
+  addAsteroid2: function(event){
+    var asteroid = new Asteroid2();
+    this.addChild(asteroid);
+  },
   removeAsteroid: function(asteroid) {
     this.removeChild(asteroid);
   },
-  addAsteroid2: function(event) {
-    var asteroid2 = new Asteroid2();
-    this.addChild(asteroid2);
-  },
-  removeAsteroid2: function(asteroid2) {
-    this.removeChild(asteroid2);
-  },
+
   //BGMと効果音の関数を追加
-  /*
+
   playSe: function() {
     this.audioEngine.playEffect(res.se_surprize);
   },
@@ -130,7 +146,7 @@ var game = cc.Layer.extend({
   },
   seDown: function() {
     this.audioEngine.setEffectsVolume(this.audioEngine.getEffectsVolume() - 0.1);
-  }*/
+  }
 
 });
 
@@ -149,10 +165,10 @@ var ScrollingBG = cc.Sprite.extend({
   },
   scroll: function() {
     //座標を更新する
-    this.setPosition(this.getPosition().x - scrollSpeed1, this.getPosition().y);
+    this.setPosition(this.getPosition().x - scrollSpeed, this.getPosition().y);
     //画面の端に到達したら反対側の座標にする
     if (this.getPosition().x < 0) {
-      this.setPosition(this.getPosition().x + 480, this.getPosition().y);
+      this.setPosition(this.getPosition().x + 320, this.getPosition().y);
     }
   }
 });
@@ -165,15 +181,15 @@ var ScrollingRA = cc.Sprite.extend({
   //onEnterメソッドはスプライト描画の際に必ず呼ばれる
   onEnter: function() {
     //背景画像の描画開始位置 横960の画像の中心が、画面の端に設置される
-    this.setPosition(size.width, size.height / 1);
+    this.setPosition(size.width, size.height * 0.9);
     //  this.setPosition(480,160);
   },
   scroll: function() {
     //座標を更新する
-    this.setPosition(this.getPosition().x - scrollSpeed2, this.getPosition().y);
+    this.setPosition(this.getPosition().x - scrollSpeed*1.5, this.getPosition().y);
     //画面の端に到達したら反対側の座標にする
     if (this.getPosition().x < 0) {
-      this.setPosition(this.getPosition().x + 480, this.getPosition().y);
+      this.setPosition(this.getPosition().x + 320, this.getPosition().y);
     }
   }
 });
@@ -191,10 +207,51 @@ var ScrollingRU = cc.Sprite.extend({
   },
   scroll: function() {
     //座標を更新する
-    this.setPosition(this.getPosition().x - scrollSpeed3, this.getPosition().y);
+    this.setPosition(this.getPosition().x - scrollSpeed*1.5, this.getPosition().y);
     //画面の端に到達したら反対側の座標にする
     if (this.getPosition().x < 0) {
-      this.setPosition(this.getPosition().x + 480, this.getPosition().y);
+      this.setPosition(this.getPosition().x + 320, this.getPosition().y);
+    }
+  }
+});
+var ScrollingCA = cc.Sprite.extend({
+  //ctorはコンストラクタ　クラスがインスタンスされたときに必ず実行される
+  ctor: function() {
+    this._super();
+    this.initWithFile(res.ceiling_png);
+  },
+  //onEnterメソッドはスプライト描画の際に必ず呼ばれる
+  onEnter: function() {
+    //背景画像の描画開始位置 横960の画像の中心が、画面の端に設置される
+    this.setPosition(size.width, size.height*1.05);
+    //  this.setPosition(480,160);
+  },
+  scroll: function() {
+    //座標を更新する
+    this.setPosition(this.getPosition().x - scrollSpeed*2, this.getPosition().y);
+    //画面の端に到達したら反対側の座標にする
+    if (this.getPosition().x < 0) {
+      this.setPosition(this.getPosition().x + 320, this.getPosition().y);
+    }
+  }
+});var ScrollingLU = cc.Sprite.extend({
+  //ctorはコンストラクタ　クラスがインスタンスされたときに必ず実行される
+  ctor: function() {
+    this._super();
+    this.initWithFile(res.land_png);
+  },
+  //onEnterメソッドはスプライト描画の際に必ず呼ばれる
+  onEnter: function() {
+    //背景画像の描画開始位置 横960の画像の中心が、画面の端に設置される
+    this.setPosition(size.width , size.height*-0.05);
+    //  this.setPosition(480,160);
+  },
+  scroll: function() {
+    //座標を更新する
+    this.setPosition(this.getPosition().x - scrollSpeed*2, this.getPosition().y);
+    //画面の端に到達したら反対側の座標にする
+    if (this.getPosition().x < 0) {
+      this.setPosition(this.getPosition().x + 320, this.getPosition().y);
     }
   }
 });
@@ -215,6 +272,15 @@ var Ebi = cc.Sprite.extend({
     //宇宙船を操作するで追加した部分
     if (this.engineOn) {
       this.ySpeed += gameThrust;
+      this.initWithFile(res.shrimp02_png);
+      EM += 1;
+      if(EM ==3){
+        this.initWithFile(res.shrimp03_png);
+      }
+      if(EM ==6){
+        this.initWithFile(res.shrimp01_png);
+        EM = 0;
+      }
       //ここでパーティクルエフェクトを宇宙船のすぐ後ろに配置している
       emitter.setPosition(this.getPosition().x - 25, this.getPosition().y);
     } else {
@@ -233,7 +299,7 @@ var Ebi = cc.Sprite.extend({
     this.ySpeed += gameGravity;
 
     //宇宙船が画面外にでたら、リスタートさせる
-    if (this.getPosition().y < 0 || this.getPosition().y > 320) {
+    if (this.getPosition().y < size.height*0.18 || this.getPosition().y > size.height*0.82) {
       restartGame();
 
     }
@@ -254,10 +320,10 @@ var Asteroid = cc.Sprite.extend({
   },
   update: function(dt) {
     //サンゴとの衝突を判定する処理
-    var EbiBoundingBox = Ebi.getBoundingBox();
+    var ebiBoundingBox = ebi.getBoundingBox();
     var asteroidBoundingBox = this.getBoundingBox();
     //rectIntersectsRectは２つの矩形が交わっているかチェックする
-    if (cc.rectIntersectsRect(EbiBoundingBox, asteroidBoundingBox) && Ebi.invulnerability == 0) {
+    if (cc.rectIntersectsRect(ebiBoundingBox, asteroidBoundingBox) && ebi.invulnerability == 0) {
       gameLayer.removeAsteroid(this); //小惑星を削除する
       //ボリュームを上げる
       audioEngine.setEffectsVolume(audioEngine.getEffectsVolume() + 0.3);
@@ -291,11 +357,11 @@ var Asteroid2 = cc.Sprite.extend({
   },
   update: function(dt) {
     //サンゴとの衝突を判定する処理
-    var EbiBoundingBox = Ebi.getBoundingBox();
+    var ebiBoundingBox = ebi.getBoundingBox();
     var asteroid2BoundingBox = this.getBoundingBox();
     //rectIntersectsRectは２つの矩形が交わっているかチェックする
-    if (cc.rectIntersectsRect(EbiBoundingBox, asteroid2BoundingBox) && Ebi.invulnerability == 0) {
-      gameLayer.removeAsteroid2(this); //小惑星を削除する
+    if (cc.rectIntersectsRect(ebiBoundingBox, asteroid2BoundingBox) && ebi.invulnerability == 0) {
+      gameLayer.removeAsteroid(this); //小惑星を削除する
       //ボリュームを上げる
       audioEngine.setEffectsVolume(audioEngine.getEffectsVolume() + 0.3);
       //効果音を再生する
@@ -309,20 +375,22 @@ var Asteroid2 = cc.Sprite.extend({
     }
     //画面の外にでたサンゴを消去する処理
     if (this.getPosition().x < -50) {
-      gameLayer.removeAsteroid2(this)
+      gameLayer.removeAsteroid(this)
     }
   }
 });
 //宇宙船を元の位置に戻して、宇宙船の変数を初期化する
 function restartGame() {
-  Ebi.ySpeed = 0;
-  Ebi.setPosition(Ebi.getPosition().x, 160);
-  Ebi.invulnerability = 100;
-  zanki = zanki - 1;
-  if(zanki == 0){
+  zanki--;
+  zankiText.setString("残機："+zanki);
+  if(zanki < 0){
     zanki=3;
     cc.director.runScene(new OverScene());
   }
+  ebi.ySpeed = 0;
+  ebi.setPosition(ebi.getPosition().x, 160);
+  ebi.invulnerability = 100;
+
   //bgmリスタート
   if (!audioEngine.isMusicPlaying()) {
     audioEngine.resumeMusic();
